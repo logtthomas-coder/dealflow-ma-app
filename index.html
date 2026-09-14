@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>DealFlow M&A</title>
+  <style>
+    :root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--accent:#2563eb;--accent2:#dbeafe;--danger:#b91c1c}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit} button{cursor:pointer}
+    .app{max-width:760px;margin:0 auto;min-height:100vh;padding:env(safe-area-inset-top) 14px calc(84px + env(safe-area-inset-bottom))}
+    header{padding:18px 2px 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+    .eyebrow{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    h1{font-size:25px;margin:2px 0 0}
+    .btn{border:1px solid var(--border);background:#fff;padding:10px 12px;border-radius:12px}
+    .primary{background:var(--accent);border-color:var(--accent);color:white;font-weight:700}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:15px;margin-bottom:12px}
+    .sectionTitle{font-weight:750;margin-bottom:4px}
+    .small{color:var(--muted);font-size:13px}
+    .select{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff}
+    .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .kpi{background:#fff;border:1px solid var(--border);border-radius:14px;padding:13px}
+    .kpi strong{display:block;font-size:20px;margin-top:3px}
+    .phases{display:flex;gap:8px;overflow:auto;padding:2px 0 4px}
+    .phase{min-width:118px;text-align:left;border:1px solid var(--border);background:#fafafa;border-radius:12px;padding:10px}
+    .phase.active{border-color:var(--accent);background:var(--accent2)}
+    .task{display:grid;grid-template-columns:1fr auto;gap:10px;border-top:1px solid var(--border);padding:12px 0}
+    .task:first-child{border-top:0}
+    .pill{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:12px;margin-top:6px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .row select,.row input{padding:8px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    .danger{color:var(--danger)}
+    .bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(760px,100%);display:grid;grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,.97);border-top:1px solid var(--border);padding:8px 8px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+    .bottomnav button{border:0;background:transparent;padding:10px 4px;color:var(--muted);font-size:12px}
+    .bottomnav button.active{color:var(--accent);font-weight:700}
+    .view{display:none}.view.active{display:block}
+    .sheet{display:none}.sheet.open{display:block}
+    label{display:block;font-size:13px;margin-top:10px}
+    label input,label select{width:100%;padding:11px;margin-top:5px;border:1px solid var(--border);border-radius:11px;background:#fff}
+    .teamGrid{display:grid;gap:10px}
+    .team{border:1px solid var(--border);border-radius:12px;padding:12px}
+    @media(min-width:650px){.kpis{grid-template-columns:repeat(4,1fr)}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div><div class="eyebrow">M&A Workspace</div><h1>DealFlow</h1></div>
+    <button id="newTaskTop" class="btn primary">+ Taak</button>
+  </header>
+
+  <div class="card">
+    <div class="small">Actief project</div>
+    <select id="dealSelect" class="select">
+      <option value="alpha">Project Alpha — Atlas BV</option>
+      <option value="beta">Project Beta — Northstar Group</option>
+      <option value="gamma">Project Gamma — Delta Services</option>
+    </select>
+  </div>
+
+  <main>
+    <section id="dashboard" class="view active">
+      <div class="kpis">
+        <div class="kpi"><span class="small">Fase</span><strong id="kpiPhase">—</strong></div>
+        <div class="kpi"><span class="small">Voortgang</span><strong id="kpiProgress">—</strong></div>
+        <div class="kpi"><span class="small">Open taken</span><strong id="kpiOpen">—</strong></div>
+        <div class="kpi"><span class="small">Volgende deadline</span><strong id="kpiDeadline">—</strong></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="sectionTitle">Dealproces</div>
+        <div class="small" style="margin-bottom:10px">Tik op een fase om het project te verplaatsen.</div>
+        <div id="phaseTrack" class="phases"></div>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle">Open werkzaamheden</div>
+        <div id="taskList"></div>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle">Activity feed</div>
+        <div id="activity"></div>
+      </div>
+    </section>
+
+    <section id="mytasks" class="view">
+      <div class="card">
+        <div class="sectionTitle">Mijn taken</div>
+        <div class="small" style="margin-bottom:8px">Open taken toegewezen aan Thomas.</div>
+        <div id="myTaskList"></div>
+      </div>
+    </section>
+
+    <section id="planning" class="view">
+      <div class="card">
+        <div class="sectionTitle">Planning</div>
+        <div id="planningList"></div>
+      </div>
+    </section>
+
+    <section id="team" class="view">
+      <div class="card">
+        <div class="sectionTitle">Dealteam</div>
+        <div class="teamGrid" id="teamList"></div>
+      </div>
+    </section>
+  </main>
+
+  <section id="taskSheet" class="card sheet">
+    <div class="sectionTitle">Nieuwe taak</div>
+    <form id="taskForm">
+      <label>Taaknaam<input id="taskName" required placeholder="Bijv. Financial DD review"></label>
+      <label>Workstream<select id="taskWorkstream"><option>Financial</option><option>Commercial</option><option>Legal</option><option>Tax</option><option>General</option></select></label>
+      <label>Owner<select id="taskOwner"><option>Thomas</option><option>Sophie</option><option>Mark</option><option>Lisa</option></select></label>
+      <label>Deadline<input id="taskDeadline" type="date" required></label>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" type="submit">Toevoegen</button>
+        <button class="btn" type="button" id="cancelTask">Annuleren</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<nav class="bottomnav">
+  <button data-view="dashboard" class="active">Dashboard</button>
+  <button data-view="mytasks">Mijn taken</button>
+  <button data-view="planning">Planning</button>
+  <button data-view="team">Team</button>
+</nav>
+
+<script>
+const phases=['Screening','Valuation','IOI','Due Diligence','Final Offer','SPA','Signing','Closing'];
+const initial={
+ alpha:{phase:3,tasks:[
+  {id:1,name:'Review Financial DD report',workstream:'Financial',owner:'Thomas',deadline:'2026-09-18',status:'In Progress'},
+  {id:2,name:'Commercial Q&A follow-up',workstream:'Commercial',owner:'Sophie',deadline:'2026-09-17',status:'Review'},
+  {id:3,name:'Net debt bridge',workstream:'Financial',owner:'Thomas',deadline:'2026-09-19',status:'To Do'},
+  {id:4,name:'Legal red flags review',workstream:'Legal',owner:'Mark',deadline:'2026-09-18',status:'In Progress'},
+  {id:5,name:'Tax structuring memo',workstream:'Tax',owner:'Lisa',deadline:'2026-09-21',status:'To Do'}],
+  activity:['Thomas updated Net debt bridge','Mark updated Legal red flags review']},
+ beta:{phase:2,tasks:[
+  {id:11,name:'Finalize indicative valuation',workstream:'Financial',owner:'Thomas',deadline:'2026-09-20',status:'In Progress'},
+  {id:12,name:'Draft IOI',workstream:'General',owner:'Sophie',deadline:'2026-09-21',status:'Review'}],
+  activity:['Sophie moved Draft IOI to Review']},
+ gamma:{phase:5,tasks:[
+  {id:21,name:'SPA comments round 3',workstream:'Legal',owner:'Mark',deadline:'2026-09-15',status:'In Progress'},
+  {id:22,name:'Purchase price mechanism',workstream:'Financial',owner:'Thomas',deadline:'2026-09-16',status:'Review'}],
+  activity:['Mark uploaded SPA comments']}
+};
+let deals=JSON.parse(localStorage.getItem('dealflowData')||'null')||initial;
+let active=localStorage.getItem('dealflowActive')||'alpha';
+const team=[['Thomas','Associate','Financial / Valuation'],['Sophie','VP','Deal lead / Commercial'],['Mark','Legal Counsel','Legal / SPA'],['Lisa','Analyst','Tax / Process']];
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=v=>{if(!v)return'—';let [y,m,d]=v.split('-').map(Number);return new Intl.DateTimeFormat('nl-NL',{day:'numeric',month:'short'}).format(new Date(Date.UTC(y,m-1,d)))}
+function save(){localStorage.setItem('dealflowData',JSON.stringify(deals));localStorage.setItem('dealflowActive',active)}
+function log(m){deals[active].activity.unshift(m);deals[active].activity=deals[active].activity.slice(0,10);save()}
+function render(){
+  $('#dealSelect').value=active;
+  const d=deals[active], open=d.tasks.filter(t=>t.status!=='Completed'), done=d.tasks.length-open.length;
+  $('#kpiPhase').textContent=phases[d.phase];
+  $('#kpiProgress').textContent=(d.tasks.length?Math.round(done/d.tasks.length*100):0)+'%';
+  $('#kpiOpen').textContent=open.length;
+  const next=[...open].sort((a,b)=>a.deadline.localeCompare(b.deadline))[0];
+  $('#kpiDeadline').textContent=next?fmt(next.deadline):'Geen';
+  $('#phaseTrack').innerHTML=phases.map((p,i)=>`<button class="phase ${i===d.phase?'active':''}" data-p="${i}"><span class="small">${i+1}/8</span><br><b>${esc(p)}</b></button>`).join('');
+  $$('.phase').forEach(b=>b.onclick=()=>{let old=phases[d.phase];d.phase=+b.dataset.p;log(`Fase gewijzigd van ${old} naar ${phases[d.phase]}`);render()});
+  $('#taskList').innerHTML=open.length?open.map(t=>taskHTML(t)).join(''):'<div class="small">Geen open taken.</div>';
+  bindTaskControls();
+  $('#myTaskList').innerHTML=d.tasks.filter(t=>t.owner==='Thomas'&&t.status!=='Completed').map(taskHTML).join('')||'<div class="small">Geen open taken voor Thomas.</div>';
+  bindTaskControls();
+  $('#activity').innerHTML=d.activity.map((a,i)=>`<div class="task"><div>${esc(a)}<div class="small">${i===0?'zojuist':'eerder'}</div></div></div>`).join('');
+  $('#planningList').innerHTML=phases.map((p,i)=>`<div class="task"><div><b>${i+1}. ${esc(p)}</b><div class="small">${i<d.phase?'Afgerond':i===d.phase?'Actieve fase':'Nog niet gestart'}</div></div></div>`).join('');
+  $('#teamList').innerHTML=team.map(([n,r,f])=>`<div class="team"><b>${esc(n)}</b><div class="small">${esc(r)}</div><div style="margin-top:5px">${esc(f)}</div></div>`).join('');
+  save();
+}
+function taskHTML(t){
+  return `<div class="task" data-id="${t.id}">
+    <div><b>${esc(t.name)}</b><div class="small">${esc(t.workstream)} · ${fmt(t.deadline)}</div><span class="pill">${esc(t.status)}</span></div>
+    <div class="row">
+      <select class="owner"><option ${t.owner==='Thomas'?'selected':''}>Thomas</option><option ${t.owner==='Sophie'?'selected':''}>Sophie</option><option ${t.owner==='Mark'?'selected':''}>Mark</option><option ${t.owner==='Lisa'?'selected':''}>Lisa</option></select>
+      <select class="status"><option ${t.status==='To Do'?'selected':''}>To Do</option><option ${t.status==='In Progress'?'selected':''}>In Progress</option><option ${t.status==='Review'?'selected':''}>Review</option><option ${t.status==='Completed'?'selected':''}>Completed</option></select>
+    </div></div>`;
+}
+function bindTaskControls(){
+  $$('[data-id]').forEach(el=>{
+    if(el.dataset.bound)return; el.dataset.bound='1';
+    const t=deals[active].tasks.find(x=>x.id===+el.dataset.id); if(!t)return;
+    const owner=el.querySelector('.owner'),status=el.querySelector('.status');
+    if(owner)owner.onchange=e=>{t.owner=e.target.value;log(`${t.name}: owner gewijzigd naar ${t.owner}`);render()};
+    if(status)status.onchange=e=>{t.status=e.target.value;log(`${t.name}: status gewijzigd naar ${t.status}`);render()};
+  });
+}
+$('#dealSelect').onchange=e=>{active=e.target.value;render()};
+$('#newTaskTop').onclick=()=>{$('#taskSheet').classList.add('open');$('#taskName').focus()};
+$('#cancelTask').onclick=()=>$('#taskSheet').classList.remove('open');
+$('#taskForm').onsubmit=e=>{e.preventDefault();let name=$('#taskName').value.trim(),deadline=$('#taskDeadline').value;if(!name||!deadline)return;deals[active].tasks.push({id:Date.now(),name,workstream:$('#taskWorkstream').value,owner:$('#taskOwner').value,deadline,status:'To Do'});log(`${name} toegevoegd`);e.target.reset();$('#taskSheet').classList.remove('open');render()};
+$$('.bottomnav button').forEach(b=>b.onclick=()=>{$$('.bottomnav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.view').forEach(v=>v.classList.remove('active'));$('#'+b.dataset.view).classList.add('active')});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
+render();
+</script>
+</body>
+</html>
